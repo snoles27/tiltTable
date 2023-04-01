@@ -1,4 +1,5 @@
 using PyPlot
+using NLsolve
 
 
 include("circleIntersect.jl")
@@ -62,9 +63,31 @@ function thetas2ElAz(angles::Vector{Float64})
     return getElAz(nhat)
 end
 
+function ElAz2Thetas(ElAz::Vector{Float64})
+
+    thetas0 = [0.1,0.2]
+
+    function f!(F, angles)
+        F = thetas2ElAz(angles) - ElAz
+    end
+
+    return nlsolve(f!, thetas0)
+end
+
+function f!(F, angles)
+
+    println(angles)
+    ElAz = [1.04, 3.0]
+    current = thetas2ElAz(angles)
+    display(current)
+    F = current - ElAz
+
+end
+
 let 
     
-    thetas2ElAz([pi/4, 0.0])
+
+    #thetas2ElAz([pi/4, 0.0])
 
     ##testing plane point finder
     # angles = range(-pi/2, pi/2, 100)
