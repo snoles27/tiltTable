@@ -138,6 +138,4 @@ end
 
 #     findCircleIntersect(center1, center2, r1, r2, testPoint)
 
-
-
 # end
