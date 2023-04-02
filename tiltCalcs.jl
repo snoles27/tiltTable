@@ -63,29 +63,55 @@ function thetas2ElAz(angles::Vector{Float64})
     return getElAz(nhat)
 end
 
-function ElAz2Thetas(ElAz::Vector{Float64})
+function ElAz2Normal(ElAz::Vector{Float64})
 
-    thetas0 = [0.1,0.2]
+    #ElAz: [El, Az]
 
-    function f!(F, angles)
-        F = thetas2ElAz(angles) - ElAz
-    end
-
-    return nlsolve(f!, thetas0)
+    return [cos(ElAz[1])*cos(ElAz[2]), cos(ElAz[1])*sin(ElAz[2]), sin(ElAz[1])]
 end
 
-function f!(F, angles)
+function normal2PlanePoints(normal::Vector{Float64}; x0::Vector{Float64} = [1.3, 0.0, 1.3, 0.0])
 
-    println(angles)
-    ElAz = [1.04, 3.0]
-    current = thetas2ElAz(angles)
-    display(current)
-    F = current - ElAz
+    #state vector for this solve is x = [x1, z1, y2, z2]
+
+    f13(x) = [-x[2] * x[3], -x[1] * x[4], x[1] * x[3]] / sqrt((x[1] * x[3])^2 + (x[1] * x[4])^2 + (x[2] * x[3])^2) - normal #normal vector equations
+    f4(x) = sqrt(x[1]^2 + x[3]^2 + (x[2] - x[4])^2) - sqrt(2) * rodLoc #fixed point distance equation 
+    f(x) = vcat(f13(x), f4(x))
+
+    function fdot(x)
+        x1 = x[1]
+        z1 = x[2]
+        y2 = x[3]
+        z2 = x[4]
+
+        df = zeros(4,4)
+        df[1,1] = (y2*z1*(2*x1*y2^2 + 2*x1*z2^2))/(2*(x1^2*y2^2 + x1^2*z2^2 + y2^2*z1^2)^(3/2))
+        df[1,2] = (y2^3*z1^2)/(x1^2*y2^2 + x1^2*z2^2 + y2^2*z1^2)^(3/2) - y2/(x1^2*y2^2 + x1^2*z2^2 + y2^2*z1^2)^(1/2)
+        df[1,3] = (y2*z1*(2*y2*x1^2 + 2*y2*z1^2))/(2*(x1^2*y2^2 + x1^2*z2^2 + y2^2*z1^2)^(3/2)) - z1/(x1^2*y2^2 + x1^2*z2^2 + y2^2*z1^2)^(1/2)
+        df[1,4] = (x1^2*y2*z1*z2)/(x1^2*y2^2 + x1^2*z2^2 + y2^2*z1^2)^(3/2)
+
+        df[2,1] = (x1*z2*(2*x1*y2^2 + 2*x1*z2^2))/(2*(x1^2*y2^2 + x1^2*z2^2 + y2^2*z1^2)^(3/2)) - z2/(x1^2*y2^2 + x1^2*z2^2 + y2^2*z1^2)^(1/2)
+        df[2,2] = (x1*y2^2*z1*z2)/(x1^2*y2^2 + x1^2*z2^2 + y2^2*z1^2)^(3/2)
+        df[2,3] = (x1*z2*(2*y2*x1^2 + 2*y2*z1^2))/(2*(x1^2*y2^2 + x1^2*z2^2 + y2^2*z1^2)^(3/2))
+        df[2,4] = (x1^3*z2^2)/(x1^2*y2^2 + x1^2*z2^2 + y2^2*z1^2)^(3/2) - x1/(x1^2*y2^2 + x1^2*z2^2 + y2^2*z1^2)^(1/2)
+
+        df[3,1] = z2/(x1^2*y2^2 + x1^2*z2^2 + y2^2*z1^2)^(1/2) - (x1*z2*(2*x1*y2^2 + 2*x1*z2^2))/(2*(x1^2*y2^2 + x1^2*z2^2 + y2^2*z1^2)^(3/2))
+        df[3,2] = -(x1*y2^2*z1*z2)/(x1^2*y2^2 + x1^2*z2^2 + y2^2*z1^2)^(3/2)
+        df[3,3] = -(x1*z2*(2*y2*x1^2 + 2*y2*z1^2))/(2*(x1^2*y2^2 + x1^2*z2^2 + y2^2*z1^2)^(3/2))
+        df[3,4] = x1/(x1^2*y2^2 + x1^2*z2^2 + y2^2*z1^2)^(1/2) - (x1^3*z2^2)/(x1^2*y2^2 + x1^2*z2^2 + y2^2*z1^2)^(3/2)
+
+        df[4,:] = [x[1] x[2] (x[3] - x[4]) (x[4] - x[3])] / sqrt(x[1]^2 + x[2]^2 + (x[3] - x[4])^2)
+        
+        return df
+    end
+    
+    return newtonraphson(f, fdot, x0)
 
 end
 
 let 
-    
+
+    normal2PlanePoints([1/sqrt(2), 0.0, 1/sqrt(2)])
 
     #thetas2ElAz([pi/4, 0.0])
 
