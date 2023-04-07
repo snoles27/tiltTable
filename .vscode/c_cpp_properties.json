@@ -1,0 +1,30 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/Users/Sam/Code/pico/pico-sdk",
+                "/Users/Sam/Code/pico/pico-sdk/src/common/pico_stdlib/include",
+                "/Users/Sam/Code/pico/pico-sdk/src/boards/include/boards",
+                "/Users/Sam/Code/pico/pico-sdk/src/rp2_common/pico_stdio/include",
+                "/Users/Sam/Code/pico/pico-sdk/src/common/pico_time/include",
+                "/Users/Sam/Code/pico/pico-sdk/src/host/hardware_timer/include",
+                "/Users/Sam/Code/pico/pico-sdk/src/host/hardware_gpio/include",
+                "/Users/Sam/Code/pico/pico-sdk/src/rp2_common/hardware_uart/include",
+                "/Users/Sam/Code/pico/pico-sdk/src/rp2040/hardware_structs/include",
+                "/Users/Sam/Code/pico/pico-sdk/src/rp2_common/hardware_base/include",
+                "/Users/Sam/Code/pico/pico-sdk/src/rp2040/hardware_regs/include"
+            ],
+            "defines": [],
+            "macFrameworkPath": [
+                "/Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk/System/Library/Frameworks"
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "macos-gcc-x64"
+        }
+    ],
+    "version": 4
+}
