@@ -70,9 +70,11 @@ function ElAz2Normal(ElAz::Vector{Float64})
     return [cos(ElAz[1])*cos(ElAz[2]), cos(ElAz[1])*sin(ElAz[2]), sin(ElAz[1])]
 end
 
-function normal2PlanePoints(normal::Vector{Float64}; x0::Vector{Float64} = [1.3, 0.0, 1.3, 0.0])
+function normal2PlanePoints(normal::Vector{Float64}; x0::Vector{Float64} = [1.3, 0.2, 1.1, 0.1])
 
     #state vector for this solve is x = [x1, z1, y2, z2]
+    #function is [normal vector matching equations, point distance fixed equations]
+    ##DOESNT WORK - df Matrix singular on first iteratino
 
     f13(x) = [-x[2] * x[3], -x[1] * x[4], x[1] * x[3]] / sqrt((x[1] * x[3])^2 + (x[1] * x[4])^2 + (x[2] * x[3])^2) - normal #normal vector equations
     f4(x) = sqrt(x[1]^2 + x[3]^2 + (x[2] - x[4])^2) - sqrt(2) * rodLoc #fixed point distance equation 
@@ -102,6 +104,8 @@ function normal2PlanePoints(normal::Vector{Float64}; x0::Vector{Float64} = [1.3,
 
         df[4,:] = [x[1] x[2] (x[3] - x[4]) (x[4] - x[3])] / sqrt(x[1]^2 + x[2]^2 + (x[3] - x[4])^2)
         
+        display(df)
+
         return df
     end
     
@@ -109,10 +113,44 @@ function normal2PlanePoints(normal::Vector{Float64}; x0::Vector{Float64} = [1.3,
 
 end
 
+function ElAzGrid(theta1s::Vector{Float64}, theta2s::Vector{Float64})
+    #theta1s: vector of first servo motor angles
+    #theta2s: vector of second servo motor angles
+    #returns El Matrix and Az matrix corresponding to full grid of all combos of theta1 and theta2
+    n = length(theta1s)
+    El = zeros(n, n)
+    Az = zeros(n, n)
+
+    for i = 1:n
+        for j = 1:n
+            ElAz = thetas2ElAz([theta1s[i], theta2s[j]])
+            El[i,j] = ElAz[1]
+            Az[i,j] = ElAz[2]
+        end
+    end
+
+    return El, Az
+
+end
+
 let 
 
-    normal2PlanePoints([1/sqrt(2), 0.0, 1/sqrt(2)])
+    theta1 = collect(range(-pi/2, pi/2, 50))
+    theta2 = collect(range(-pi/2, pi/2, 50))
 
+    angleWant = pi/4
+
+    El, Az = ElAzGrid(theta1, theta2)
+
+    T2 = theta2' .* ones(length(theta1))
+    T1 = ones(length(theta1))' .* theta1
+
+    pygui(true)
+    surf(T1, T2, Az, cmap=ColorMap("coolwarm"))
+    surf(T1, T2, angleWant * ones(length(theta1), length(theta2)))
+    xlabel("Servo 1 Angle (rad)")
+    ylabel("Servo 2 Angle (rad)")
+    
     #thetas2ElAz([pi/4, 0.0])
 
     ##testing plane point finder
