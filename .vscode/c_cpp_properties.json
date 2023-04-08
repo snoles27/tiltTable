@@ -14,7 +14,9 @@
                 "/Users/Sam/Code/pico/pico-sdk/src/rp2_common/hardware_uart/include",
                 "/Users/Sam/Code/pico/pico-sdk/src/rp2040/hardware_structs/include",
                 "/Users/Sam/Code/pico/pico-sdk/src/rp2_common/hardware_base/include",
-                "/Users/Sam/Code/pico/pico-sdk/src/rp2040/hardware_regs/include"
+                "/Users/Sam/Code/pico/pico-sdk/src/rp2040/hardware_regs/include",
+                "/Users/Sam/Code/pico/pico-sdk/src/rp2_common/hardware_irq/include",
+                "/Users/Sam/Code/pico/pico-sdk/src/rp2_common/hardware_pwm/include"
             ],
             "defines": [],
             "macFrameworkPath": [
