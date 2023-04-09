@@ -9,6 +9,11 @@ const uint16_t initLevel = 6250;
 const uint8_t clkdiv_int = 40;
 const uint8_t clkdiv_frac = 0;
 
+const int angleMin = 0;
+const int levelMin = 3400;
+const int angleMax = 90;
+const int levelMax = 6250;
+
 
 int main() {
 
@@ -28,13 +33,19 @@ int main() {
     stdio_init_all();
 
     int level = initLevel;
+    int angleRead = 0;
+
+    double level2angle;
+    level2angle = (double)(levelMax - levelMin)/(angleMax-angleMin);
+
 
      while (1) {
 
-        printf("Enter a level between 3125 and 6250\n");
-        scanf("%d", &level);
-        pwm_set_chan_level(slice, channel, level);
+        printf("Enter an integer angle between 0 and 90\n");
+        scanf("%d", &angleRead);
 
+        level = (int)(level2angle * (angleRead - angleMin)) + levelMin;
+        pwm_set_chan_level(slice, channel, level);
         sleep_ms(500);
 
      }
