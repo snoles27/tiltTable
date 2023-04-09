@@ -1,5 +1,6 @@
 using PyPlot
 using NLsolve
+using Colors
 
 
 include("circleIntersect.jl")
@@ -133,23 +134,90 @@ function ElAzGrid(theta1s::Vector{Float64}, theta2s::Vector{Float64})
 
 end
 
-let 
+function colorPlot(ElAz0::Vector{Float64}; scale::Float64 = 0.5)
+    #plots color grid in servo angle space
+    #ElAz0: desired El and Az specifed with [El, Az] 2x1 vector
 
-    theta1 = collect(range(-pi/2, pi/2, 50))
-    theta2 = collect(range(-pi/2, pi/2, 50))
+    #number of points in each servo range (total number is numPoints^2)
+    numPoints = 50
 
-    angleWant = pi/4
+    #set range of servo angles
+    theta1 = collect(range(-pi/2, pi/2, numPoints))
+    theta2 = collect(range(-pi/2, pi/2, numPoints))
 
+    #get El and Az for every coordinate in servo angle space
     El, Az = ElAzGrid(theta1, theta2)
 
-    T2 = theta2' .* ones(length(theta1))
-    T1 = ones(length(theta1))' .* theta1
+    #get difference from desired for every coordinate
+    delEl = El .- ElAz0[1]
+    delAz = Az .- ElAz0[2]
 
     pygui(true)
-    surf(T1, T2, Az, cmap=ColorMap("coolwarm"))
-    surf(T1, T2, angleWant * ones(length(theta1), length(theta2)))
-    xlabel("Servo 1 Angle (rad)")
-    ylabel("Servo 2 Angle (rad)")
+    for i = 1:numPoints
+        for j = 1:numPoints
+            rgb = getColor(delEl[i,j], delAz[i,j], scale = scale)
+            scatter(theta1[i], theta2[j], color=rgb)
+        end
+    end
+
+end
+
+function getColor(delEl::Float64, delAz::Float64; scale::Float64 = 1.0)
+    #returns RGB vector for a given delEl and delAz
+
+    angle = atan(delAz, delEl) * 180/pi #returns angle from -pi to pi
+    #if angle is negative, add 360
+    if angle < 0.0
+        angle = angle + 360
+    end
+
+    value = norm([delEl, delAz])/scale
+    if value > 1
+        value = 1
+    end
+
+    colorRGB = convert(RGB, HSV(angle, 1.0, value))
+    
+    return [Float64(red(colorRGB)), Float64(green(colorRGB)), Float64(blue(colorRGB))]
+
+
+end
+
+
+let 
+
+    colorPlot([pi/3, -pi/4], scale = 0.1)
+
+    ##testing color generator by looking at the output space coloring
+    # delAz = collect(range(-1,1,50))
+    # delEl = collect(range(-1,1,50))
+
+    # pygui(true)
+    # for i = 1:50
+    #     for j = 1:50
+    #         rgb = getColor(delEl[i],delAz[j],scale = 0.3)
+    #         scatter(delEl[i], delAz[j], color = rgb)
+    #     end
+    # end
+
+
+
+    #some plotting testing
+    # theta1 = collect(range(-pi/2, pi/2, 50))
+    # theta2 = collect(range(-pi/2, pi/2, 50))
+
+    # angleWant = pi/4
+
+    # El, Az = ElAzGrid(theta1, theta2)
+
+    # T2 = theta2' .* ones(length(theta1))
+    # T1 = ones(length(theta1))' .* theta1
+
+    # pygui(true)
+    # surf(T1, T2, El, cmap=ColorMap("coolwarm"))
+    # surf(T1, T2, angleWant * ones(length(theta1), length(theta2)))
+    # xlabel("Servo 1 Angle (rad)")
+    # ylabel("Servo 2 Angle (rad)")
     
     #thetas2ElAz([pi/4, 0.0])
 
