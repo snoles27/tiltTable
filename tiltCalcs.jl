@@ -49,6 +49,7 @@ function getTableNormal(theta1, theta2)
 end
 
 function getElAz(normal::Vector{Float64})
+    #normal: normal vector 
 
     El = asin(normal[3])
     Az = atan(normal[2], normal[1])
@@ -134,6 +135,73 @@ function ElAzGrid(theta1s::Vector{Float64}, theta2s::Vector{Float64})
 
 end
 
+function thetas2DelElAz(angles::Vector{Float64}, ElAz0::Vector{Float64})
+
+    #angles: [theta1, theta2]
+    #ElAz0: desired Elevation and Azimuth [El0, Az0]
+    #returns: [delEl, delAz] where delAz is RoundNearest
+
+    ElAz = thetas2ElAz(angles)
+    delEl = ElAz[1] - ElAz0[1]
+    delAz = rem2pi(ElAz[2] - ElAz0[2], RoundNearest)
+
+    return [delEl, delAz]
+
+end
+
+function dWinding(point1::Vector{Float64}, point2::Vector{Float64}, func::Function)
+    
+    #point1: first point in servo angle space
+    #point2: second point in servo angle space, 1-->2 is integratin direction
+    #func: function that takes 2d inputs and has 2d outputs (thetas2delElAz for this problem, but only takes in points)
+
+    out1 = func(point1)
+    out2 = func(point2)
+
+    a1 = atan(out1[2], out1[1])
+    a2 = atan(out2[2], out2[1])
+
+    return rem2pi(a2 - a1, RoundNearest)
+
+end
+
+function windingSegment(start::Vector{Float64}, stop::Vector{Float64}, func::Function; numStep::Int = 50)
+
+    #start: 2x1 vector denoting start cooordinates of the segment we want to know the winding number of
+    #stop: 2x1 vector denoting stop cooordinates of the segment we want to know the winding number of
+    #func: function that takes 2d inputs and returns 2d outputs
+    #numStep: steps to break segments into
+    
+    delta = stop - start
+    step = delta./numStep
+
+    winding = 0; #winding number sum for this segment 
+    for i = 1:numStep
+        a = start + step * (i-1)
+        b = start + step * i
+        winding = winding + dWinding(a, b, func)
+    end
+    return winding
+end
+
+function windingBox(verticies::Vector{Vector{Float64}}, func::Function)
+
+    #verticies: nx(2x1) vector of vectors specifying verticies in the input space 
+    #func: function that takes 2d inputs and has 2d outputs (thetas2delElAz for this problem, but only takes in points)
+    #returns: winding number of all segments going around the verticies
+
+    n = length(verticies)
+    winding = 0
+    for i = 1:n-1
+        winding = winding + windingSegment(verticies[i], verticies[i+1], func)
+    end
+    #get the last leg going from last vertex to first vertex
+    winding = winding + windingSegment(verticies[n], verticies[1], func)
+    
+    return winding
+
+end
+
 function colorPlot(ElAz0::Vector{Float64}; scale::Float64 = 0.5)
     #plots color grid in servo angle space
     #ElAz0: desired El and Az specifed with [El, Az] 2x1 vector
@@ -150,7 +218,7 @@ function colorPlot(ElAz0::Vector{Float64}; scale::Float64 = 0.5)
 
     #get difference from desired for every coordinate
     delEl = El .- ElAz0[1]
-    delAz = Az .- ElAz0[2]
+    delAz = rem2pi.(Az .- ElAz0[2], RoundNearest)
 
     pygui(true)
     for i = 1:numPoints
@@ -159,6 +227,8 @@ function colorPlot(ElAz0::Vector{Float64}; scale::Float64 = 0.5)
             scatter(theta1[i], theta2[j], color=rgb)
         end
     end
+    xlabel("Servo 1 Angle (rad)")
+    ylabel("Servo 2 Angle (rad)")
 
 end
 
@@ -186,9 +256,31 @@ end
 
 let 
 
-    colorPlot([pi/3, -pi/4], scale = 0.1)
+    ElAz0 = thetas2ElAz([pi/3, 3pi/4])
+    func(angles) = thetas2DelElAz(angles, ElAz0)
+    verts = [[1.5,0], [1.5,1.], [0.5, 1.], [0.5, 0.]] #test box that encloses the root
+    verts2 = [[1.5,-.75], [1.5,0.], [0.01, 0.], [0.01, -.75]]
+    number = windingBox(verts2, func)
+    
+    #testing windingSegment
+    
+    # ElAz0 = thetas2ElAz([pi/3, 3pi/4])
+    
+    # func(angles) = thetas2DelElAz(angles, ElAz0)
+    # start = [1.5, -1.5]
+    # stop = [1.5, 1.]
 
-    ##testing color generator by looking at the output space coloring
+    # winding = windingSegment(start, stop, func)
+
+
+    #colorPlot(ElAz0, scale = 0.1)
+
+    # del = thetas2DelElAz([pi/3, pi/4], [pi/3, 3pi/4])
+    # display(del)
+
+    # colorPlot([pi/3, 3pi/4], scale = 0.1)
+
+    # #testing color generator by looking at the output space coloring
     # delAz = collect(range(-1,1,50))
     # delEl = collect(range(-1,1,50))
 
