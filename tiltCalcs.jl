@@ -10,7 +10,7 @@ include("circleIntersect.jl")
 rServ = 0.9  #radius of the servo arm (inches)
 rodLoc = 1.3 #location of rod attachement to plate, distance to center (inches)
 lRod = 3.0 #length of actuation rod, servo attachment --> ball center (inches) 
-servoRange = [-pi/2, pi/2]
+servoRange = [-pi/2, pi/2] #angle range of servo (radians)
 #######################################
 
 ##useful nums derived from PARAMETERS##
@@ -28,14 +28,16 @@ xyserv = rodLoc - rServ/2 #x or y position of servoCenter
 
 
 function rodEndLoc(theta::Float64)
-
-    #returns: (x[y], z) position of servo end of rod
+    #theta: angle of servo arm, 0 is horozontal with range servoRange
+    #returns: (x (or y), z) position of servo end of rod
 
     return [xyserv + rServ * cos(theta), zserv + rServ * sin(theta)]
 
 end
 
 function findPlanePoint(theta)
+    #theta: servo angles
+    #returns: point of rod end in plane of servo arm rotation (xz or yz plane for servo1 and servo2 respectivly)
 
     rodEnd = rodEndLoc(theta) #center of circle defined by rod degree of freedom
 
@@ -44,6 +46,9 @@ function findPlanePoint(theta)
 end
 
 function getTableNormal(theta1, theta2)
+    #theta1: servo angle 1
+    #theta2: servo angle 2
+    #returns: table normal correesponding to given servo anlges
 
     xz = findPlanePoint(theta1)
     yz = findPlanePoint(theta2)
@@ -59,6 +64,7 @@ end
 
 function getElAz(normal::Vector{Float64})
     #normal: normal vector 
+    #returns: El and Az associateed with the normal vector
 
     El = asin(normal[3])
     Az = atan(normal[2], normal[1])
@@ -68,6 +74,8 @@ function getElAz(normal::Vector{Float64})
 end
 
 function thetas2ElAz(angles::Vector{Float64})
+    #angles: [s1, s2] where s1 and s2 are the servo angles
+    #returns: El and Az of table corresponding to servo angles
 
     nhat = getTableNormal(angles[1], angles[2])
 
@@ -75,17 +83,18 @@ function thetas2ElAz(angles::Vector{Float64})
 end
 
 function ElAz2Normal(ElAz::Vector{Float64})
-
     #ElAz: [El, Az]
+    #returns: normal vector of surface corresponding to the given El an Az
 
     return [cos(ElAz[1])*cos(ElAz[2]), cos(ElAz[1])*sin(ElAz[2]), sin(ElAz[1])]
 end
 
+##DOESNT WORK##
 function normal2PlanePoints(normal::Vector{Float64}; x0::Vector{Float64} = [1.3, 0.2, 1.1, 0.1])
 
     #state vector for this solve is x = [x1, z1, y2, z2]
     #function is [normal vector matching equations, point distance fixed equations]
-    ##DOESNT WORK - df Matrix singular on first iteratino
+    ##DOESNT WORK### - df Matrix singular on first iteratino
 
     f13(x) = [-x[2] * x[3], -x[1] * x[4], x[1] * x[3]] / sqrt((x[1] * x[3])^2 + (x[1] * x[4])^2 + (x[2] * x[3])^2) - normal #normal vector equations
     f4(x) = sqrt(x[1]^2 + x[3]^2 + (x[2] - x[4])^2) - sqrt(2) * rodLoc #fixed point distance equation 
@@ -265,12 +274,17 @@ function twoDBisection(initBox::Vector{Vector{Float64}}, func::Function; converg
         if plottingOn #if plotting on, plot each box
             plotBox(box)
         end
+        #sleep(.2) #included if wanting to screen record the convergence
     end
 
     return boxCenter(box)    
 end
 
 function findServoAngles(ElAzWant::Vector{Float64}; ElTol::Float64 = 1e-2, plottingOn::Bool = false)
+    #ElAzWant: [El, Az] vector containing desired elevation and azimuth
+    #ElTol; how close elevation has to be to pi/2 just to call it pi/2
+    #plottingOn: boolean telling whether or not to plot the solution 
+    #returns: [s1, s2] servo anlges that give desired ElAz
 
     #if the elevation is close enough to pi/2, just return zero on the servo angles
     if (pi/2 - ElAzWant[1]) < ElTol
@@ -279,7 +293,13 @@ function findServoAngles(ElAzWant::Vector{Float64}; ElTol::Float64 = 1e-2, plott
 
     initalBox = getInitBox(ElAzWant[2])
     func(angles) = thetas2DelElAz(angles, ElAzWant)
-    return twoDBisection(initalBox, func, plottingOn = plottingOn)
+    result = twoDBisection(initalBox, func, plottingOn = plottingOn)
+
+    if plottingOn
+        scatter(result[1], result[2], color = "red")
+    end
+
+    return result
 
 end
 
@@ -413,9 +433,9 @@ end
 
 let 
 
-    ElAz0 = [pi/4, pi/4]
-    findServoAngles(ElAz0, plottingOn = true)
-    colorPlot(ElAz0, scale = 0.1)
+    ElAz0 = [pi/4, -3pi/4]
+    answer = findServoAngles(ElAz0, plottingOn = true)
+    #colorPlot(ElAz0, scale = 0.1)
     
     # #testing box splitter function 
     # box1 = [[2.0, 0.0], [2.0, 1.0], [0.0, 1.0], [0.0, 0.]]
@@ -463,8 +483,6 @@ let
     #         scatter(delEl[i], delAz[j], color = rgb)
     #     end
     # end
-
-
 
     #some plotting testing
     # theta1 = collect(range(-pi/2, pi/2, 50))
