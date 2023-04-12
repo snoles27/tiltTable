@@ -10,11 +10,20 @@ include("circleIntersect.jl")
 rServ = 0.9  #radius of the servo arm (inches)
 rodLoc = 1.3 #location of rod attachement to plate, distance to center (inches)
 lRod = 3.0 #length of actuation rod, servo attachment --> ball center (inches) 
-###############################
+servoRange = [-pi/2, pi/2]
+#######################################
 
 ##useful nums derived from PARAMETERS##
 zserv = -sqrt(lRod^2 - (rServ/2)^2) #z poition of servo center
 xyserv = rodLoc - rServ/2 #x or y position of servoCenter
+#######################################
+
+
+##verticies/box represented by four points. Points definition/order
+# 3 <-<-<-<-<-<- 2
+# |              |
+# |              |
+# 4 ->->->->->-> 1
 #######################################
 
 
@@ -165,7 +174,7 @@ function dWinding(point1::Vector{Float64}, point2::Vector{Float64}, func::Functi
 
 end
 
-function windingSegment(start::Vector{Float64}, stop::Vector{Float64}, func::Function; numStep::Int = 50)
+function windingSegment(start::Vector{Float64}, stop::Vector{Float64}, func::Function; numStep::Int = 25)
 
     #start: 2x1 vector denoting start cooordinates of the segment we want to know the winding number of
     #stop: 2x1 vector denoting stop cooordinates of the segment we want to know the winding number of
@@ -202,12 +211,160 @@ function windingBox(verticies::Vector{Vector{Float64}}, func::Function)
 
 end
 
+function twoDBisectionStep(verticies::Vector{Vector{Float64}}, func::Function; thresh::Float64 = 1e-6)
+    #verticies: verticies of a rectangle that is guarenteed to have a root of func in it
+    #func: 2d --> 2d function 
+
+    #split region into two sub rectangles
+    box1, box2 = splitLong(verticies)
+
+    #calculate winding number about both 
+    winding1 = windingBox(box1, func)
+    winding2 = windingBox(box2, func)
+
+    # print("Winding1: ")
+    # println(winding1)
+    # print("Winding2: ")
+    # println(winding2)
+
+    #return verticies with winding number 
+    if winding1 % 2pi < thresh && abs(winding1) > thresh #is multiple of 2pi and greater than 0
+        return box1
+    elseif winding2 % 2pi < thresh && abs(winding2) > thresh #is multiple of 2pi and greater than 0
+        return box2
+    else #returns error
+        return 'f'
+    end
+end
+
+function twoDBisection(initBox::Vector{Vector{Float64}}, func::Function; convergedArea::Float64 = 1e-4, plottingOn::Bool = false)
+    # initBox: Inital curve that there should be a zero in
+    # func: function that maps 2d inputs to 2d outputs
+    # convergedArea; area of box that when less than means convergence
+    # plottingOn; whether or not it plots the boxes as the solution converges
+
+    #check if there is a zero in the box with the winding number 
+
+    #initalize solve
+    box = initBox
+    
+    #set up plotting if it is turned on
+    if plottingOn
+        pygui(true)
+        plotBox(box)
+        xlabel("Servo Position 1 (rad)")
+        ylabel("Servo Position 2 (rad)")
+    end
+
+    while (boxArea(box) > convergedArea) #loop until the box gets small enough 
+        box = twoDBisectionStep(box, func)
+        if box == 'f' #if twoDBisectionStep returns 'f' it means it failed
+            println("twoDBisectionStep broke")
+            break
+        end
+        if plottingOn #if plotting on, plot each box
+            plotBox(box)
+        end
+    end
+
+    return boxCenter(box)    
+end
+
+function findServoAngles(ElAzWant::Vector{Float64}; ElTol::Float64 = 1e-2, plottingOn::Bool = false)
+
+    #if the elevation is close enough to pi/2, just return zero on the servo angles
+    if (pi/2 - ElAzWant[1]) < ElTol
+        return [0.0, 0.0]
+    end
+
+    initalBox = getInitBox(ElAzWant[2])
+    func(angles) = thetas2DelElAz(angles, ElAzWant)
+    return twoDBisection(initalBox, func, plottingOn = plottingOn)
+
+end
+
+function getInitBox(Az::Float64)
+    #Az: Azimuth of desired table angle given on range (-pi, pi)
+
+    boxZero = 1e-6
+    if Az < pi/4 && Az >= -pi/4
+        box = [[-boxZero, servoRange[1]], [-boxZero,servoRange[2]], [servoRange[1],servoRange[2]], [servoRange[1], servoRange[1]]]
+    elseif Az < 3pi/4 && Az >= pi/4
+        box = [[servoRange[2], servoRange[1]], [servoRange[2], -boxZero], [servoRange[1], -boxZero], [servoRange[1], servoRange[1]]]
+    elseif Az < -pi/4 && Az >= -3pi/4
+        box = [[servoRange[2], boxZero], [servoRange[2],servoRange[2]], [servoRange[1],servoRange[2]], [servoRange[1], boxZero]]
+    else
+        box = [[servoRange[2], servoRange[1]], [servoRange[2],servoRange[2]], [boxZero,servoRange[2]], [boxZero, servoRange[1]]]
+    end
+
+    return box
+end
+
+function boxSize(verticies::Vector{Vector{Float64}})
+    #returns side lengths of rectangle defined by verticies
+    return [abs(verticies[3][1] - verticies[2][1]), abs(verticies[2][2] - verticies[1][2])]
+end
+
+function boxArea(verticies::Vector{Vector{Float64}})
+    #returns area of box defined by verticies
+    sides = boxSize(verticies)
+    return sides[1] * sides[2]
+end
+
+function boxCenter(verticies::Vector{Vector{Float64}})
+    #returns center of box represented by verticies
+    sides = boxSize(verticies)
+    return [verticies[1][1] - sides[1]/2, verticies[1][2] + sides[2]/2]
+end
+
+function plotBox(verticies::Vector{Vector{Float64}}; color::String = "black")
+    #verticies: verticies of box 
+    #color; color of box
+    #plots box represented by verticies
+
+    hlines([verticies[1][2], verticies[2][2]], verticies[4][1], verticies[1][1], color = color)
+    vlines([verticies[1][1], verticies[4][1]], verticies[1][2], verticies[2][2], color = color)
+
+end
+
+function splitLong(verticies::Vector{Vector{Float64}})
+    #verticies: coordinates of rectangle to be split along the long edge
+    #returns: two boxes of the split ones
+
+    size = boxSize(verticies)
+    horoLength = size[1]
+    vertLength = size[2]
+    splitHoro = horoLength >= vertLength
+
+    if splitHoro #split rect in 1 direction 
+        newXVal = verticies[1][1] - horoLength/2
+        newPointLow = [newXVal, verticies[1][2]]
+        newPointHigh = [newXVal, verticies[2][2]]
+
+        newBox1 = [verticies[1], verticies[2], newPointHigh, newPointLow] #right box
+        newBox2 = [newPointLow, newPointHigh, verticies[3], verticies[4]] #left box
+
+    else #split rect in 2 direction
+
+        newYVal = vertLength/2 + verticies[1][2]
+        newPointRight = [verticies[1][1], newYVal]
+        newPointLeft = [verticies[4][1], newYVal]
+
+        newBox1 = [newPointRight, verticies[2], verticies[3], newPointLeft] #top box
+        newBox2 = [verticies[1], newPointRight, newPointLeft, verticies[4]] #bottom box
+
+    end
+
+    return newBox1, newBox2
+
+end
+
 function colorPlot(ElAz0::Vector{Float64}; scale::Float64 = 0.5)
     #plots color grid in servo angle space
     #ElAz0: desired El and Az specifed with [El, Az] 2x1 vector
 
     #number of points in each servo range (total number is numPoints^2)
-    numPoints = 50
+    numPoints = 25
 
     #set range of servo angles
     theta1 = collect(range(-pi/2, pi/2, numPoints))
@@ -256,11 +413,26 @@ end
 
 let 
 
-    ElAz0 = thetas2ElAz([pi/3, 3pi/4])
-    func(angles) = thetas2DelElAz(angles, ElAz0)
-    verts = [[1.5,0], [1.5,1.], [0.5, 1.], [0.5, 0.]] #test box that encloses the root
-    verts2 = [[1.5,-.75], [1.5,0.], [0.01, 0.], [0.01, -.75]]
-    number = windingBox(verts2, func)
+    ElAz0 = [pi/4, pi/4]
+    findServoAngles(ElAz0, plottingOn = true)
+    colorPlot(ElAz0, scale = 0.1)
+    
+    # #testing box splitter function 
+    # box1 = [[2.0, 0.0], [2.0, 1.0], [0.0, 1.0], [0.0, 0.]]
+    # box2 = [[2.0, 0.0], [2.0, 4.], [0. , 4.], [0., 0.]]
+    # splitLong(box2)
+
+    
+    # ElAz0 = thetas2ElAz([pi/3, 3pi/4])
+    # #colorPlot(ElAz0, scale = 0.1)
+    # func(angles) = thetas2DelElAz(angles, ElAz0)
+    # verts = [[1.5,-1.], [1.5,1.], [0.000, 1.], [0.000, -1.]] #test box that encloses the root
+    # answer = twoDBisection(verts, func, plottingOn = true)
+    # display("Complete")
+    # scatter(answer[1], answer[2])
+
+    # verts2 = [[1.5,-.75], [1.5,0.], [0.01, 0.], [0.01, -.75]]
+    # number = windingBox(verts2, func)
     
     #testing windingSegment
     
