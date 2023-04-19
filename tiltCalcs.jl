@@ -19,7 +19,7 @@ xyserv = rodLoc - rServ/2 #x or y position of servoCenter
 #######################################
 
 
-##verticies/box represented by four points. Points definition/order
+##verticies/box represented by four points. Points definition/order. (should've just made this an object)
 # 3 <-<-<-<-<-<- 2
 # |              |
 # |              |
@@ -274,15 +274,16 @@ function twoDBisection(initBox::Vector{Vector{Float64}}, func::Function; converg
         if plottingOn #if plotting on, plot each box
             plotBox(box)
         end
-        #sleep(.2) #included if wanting to screen record the convergence
+        sleep(.2) #included if wanting to screen record the convergence
     end
 
     return boxCenter(box)    
 end
 
-function findServoAngles(ElAzWant::Vector{Float64}; ElTol::Float64 = 1e-2, plottingOn::Bool = false)
+function findServoAngles(ElAzWant::Vector{Float64}; ElTol::Float64 = 1e-2, convergeTol::Float64 = 5e-3, plottingOn::Bool = false)
     #ElAzWant: [El, Az] vector containing desired elevation and azimuth
     #ElTol; how close elevation has to be to pi/2 just to call it pi/2
+    #convergeTol: dimension range before stopping iteration 
     #plottingOn: boolean telling whether or not to plot the solution 
     #returns: [s1, s2] servo anlges that give desired ElAz
 
@@ -293,7 +294,7 @@ function findServoAngles(ElAzWant::Vector{Float64}; ElTol::Float64 = 1e-2, plott
 
     initalBox = getInitBox(ElAzWant[2])
     func(angles) = thetas2DelElAz(angles, ElAzWant)
-    result = twoDBisection(initalBox, func, plottingOn = plottingOn)
+    result = twoDBisection(initalBox, func, convergedArea = convergeTol^2, plottingOn = plottingOn)
 
     if plottingOn
         scatter(result[1], result[2], color = "red")
@@ -433,8 +434,8 @@ end
 
 let 
 
-    ElAz0 = [pi/4, -3pi/4]
-    answer = findServoAngles(ElAz0, plottingOn = true)
+    ElAz0 = [pi/4, -pi/4]
+    answer = findServoAngles(ElAz0, plottingOn = true, convergeTol = .01)
     #colorPlot(ElAz0, scale = 0.1)
     
     # #testing box splitter function 

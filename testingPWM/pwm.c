@@ -3,16 +3,34 @@
 #include "hardware/pwm.h"
 
 
+
+
 const uint prim_pin = 15;
-const uint16_t wrap = 12500;
+const uint16_t wrap = 18750;
 const uint16_t initLevel = 6250;
-const uint8_t clkdiv_int = 40;
+const uint8_t clkdiv_int = 20;
 const uint8_t clkdiv_frac = 0;
 
 const int angleMin = 0;
-const int levelMin = 3400;
-const int angleMax = 90;
-const int levelMax = 6250;
+const int levelMin = 3125;
+const int angleMax = 270;
+const int levelMax = 15625;
+
+
+
+/*
+   DS SERVO 20KG stats
+   1500us neutral
+   333Hz
+   500us-2500us 
+
+   1.25e8 Hz base
+   20 clkdivide
+   Ts = 1.6e-7
+   levelMin = 3125
+   levelMax = 15625
+   levelMix = 9375
+*/
 
 
 int main() {
