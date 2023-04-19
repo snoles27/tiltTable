@@ -1,6 +1,11 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "hardware/pwm.h"
+#include <string>
+
+//setting numbers that are useful for talking about anlges in radians
+#define PI 3.1415926
+#define PIHALF 1.570796
 
 //pwm clock settings for both servos
 const uint16_t wrap = 18750;
@@ -10,10 +15,10 @@ const uint8_t clkdiv_frac = 0;
 
 //servo specific parameters
 const int servoPin[2] = {15, 14};
-const int servo_angleMin[2] = {0, 0};
-const int servo_levelMin[2] = {3125, 3125};
-const int servo_angleMax[2] = {270, 270};
-const int servo_levelMax[2] = {15625, 15625};
+const double servo_angleMin[2] = {-PIHALF, -PIHALF};
+const int servo_levelMin[2] = {13819, 3125};
+const double servo_angleMax[2] = {PIHALF, PIHALF};
+const int servo_levelMax[2] = {5717, 15625};
 
 void initServo(int servoNum) {
 
@@ -42,6 +47,10 @@ void setPosition(int servoNum, double angle){
     int level;
     level = (int)(level2angle * (angle - servo_angleMin[servoNum])) + servo_levelMin[servoNum];
 
+    // printing level for debuging
+    // std::string levelPrint = std::to_string(level);
+    // printf(levelPrint.c_str());
+
     pwm_set_chan_level(slice, channel, level);
 
 }
@@ -52,7 +61,7 @@ int main() {
 
     stdio_init_all();
 
-    double angleRead = 0.0;
+    float angleRead = 0.0;
 
     while (1) {
 
