@@ -9,7 +9,7 @@ include("circleIntersect.jl")
 ######DESIGN PARAMETERS########
 rServ = 0.9  #radius of the servo arm (inches)
 rodLoc = 1.3 #location of rod attachement to plate, distance to center (inches)
-lRod = 3.0 #length of actuation rod, servo attachment --> ball center (inches) 
+lRod = 2.75 #length of actuation rod, servo attachment --> ball center (inches) 
 servoRange = [-pi/2, pi/2] #angle range of servo (radians)
 #######################################
 

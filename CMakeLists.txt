@@ -14,8 +14,13 @@ pico_sdk_init()
 
 # Tell CMake where to find the executable source file
 add_executable(${PROJECT_NAME} 
+    main.cpp
     servos.cpp
 )
+
+include_directories(tiltTable PUBLIC
+                         "/Users/Sam/Code/tiltTable/include"
+                    )
 
 # Create map/bin/hex/uf2 files
 pico_add_extra_outputs(${PROJECT_NAME})

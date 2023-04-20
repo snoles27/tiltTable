@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "hardware/pwm.h"
+#include "servos.h"
 #include <string>
 
 //setting numbers that are useful for talking about anlges in radians
@@ -14,11 +15,44 @@ const uint8_t clkdiv_int = 20;
 const uint8_t clkdiv_frac = 0;
 
 //servo specific parameters, tested with power supply variety of voltages 4/19/23 Samuel Noles
-const int servoPin[2] = {15, 14};
+//servo 0 --> xaxis (might say 2 on it)
+//servo 1 --> yaxis
+const int servoPin[2] = {14, 15};
 const double servo_angleMin[2] = {-PIHALF, -PIHALF};
-const int servo_levelMin[2] = {13895, 13572};
+const int servo_levelMin[2] = {13572, 5600};
 const double servo_angleMax[2] = {PIHALF, PIHALF};
-const int servo_levelMax[2] = {5600, 5576};
+const int servo_levelMax[2] = {5576,13895};
+
+void setPosition(int servoNum, double angle, bool manual){
+
+    // make sure the set angle is within the allowed range. If not set to max or min. 
+    if(manual){
+        if(angle > servo_angleMax[servoNum]){
+            angle = servo_angleMax[servoNum];
+        } else if (angle < servo_angleMin[servoNum]) {
+            angle = servo_angleMin[servoNum];
+        } else {}
+    }
+    //get slice and channel for servoPin
+    unsigned int slice=pwm_gpio_to_slice_num(servoPin[servoNum]);
+    unsigned int channel=pwm_gpio_to_channel(servoPin[servoNum]);
+
+    //get level2angle conversion
+    double level2angle;
+    level2angle = (double)(servo_levelMax[servoNum] - servo_levelMin[servoNum])/(servo_angleMax[servoNum]-servo_angleMin[servoNum]);
+    int level;
+    level = (int)(level2angle * (angle - servo_angleMin[servoNum])) + servo_levelMin[servoNum];
+
+    // // printing level for debuging
+    if(manual){
+        std::string levelPrint = std::to_string(level);
+        printf(levelPrint.c_str());
+        printf("\n");
+    }
+
+    pwm_set_chan_level(slice, channel, level);
+
+}
 
 void initServo(int servoNum) {
 
@@ -31,60 +65,31 @@ void initServo(int servoNum) {
     pwm_set_chan_level(slice, channel, initLevel);
     pwm_set_phase_correct(slice, 0);
 
-    pwm_set_enabled(slice, 1);
+    pwm_set_enabled(slice, 1); //start servo;
+    setPosition(servoNum, 0.0, false); //set angle to 0
 
 }
 
-void setPosition(int servoNum, double angle){
+void sweepServos(float initServo1, float initServo2, float finalServo1, float finalServo2, double seconds){
 
-    // make sure the set angle is within the allowed range. If not set to max or min. 
-    // if(angle > servo_angleMax[servoNum]){
-    //     angle = servo_angleMax[servoNum];
-    // } else if (angle < servo_angleMin[servoNum]) {
-    //     angle = servo_angleMin[servoNum];
-    // } else {}
+    int numSteps = 100; //number of steps to break the sweep into
+    int timeStep;
+    timeStep = (seconds/numSteps) * 1000000.0; //time step in us
+    float servo1Step;
+    servo1Step = (finalServo1 - initServo1)/numSteps;
+    float servo2Step;
+    servo2Step = (finalServo2 - initServo2)/numSteps;
 
-    //get slice and channel for servoPin
-    unsigned int slice=pwm_gpio_to_slice_num(servoPin[servoNum]);
-    unsigned int channel=pwm_gpio_to_channel(servoPin[servoNum]);
+    //move servos to inital position
+    setPosition(0, initServo1, false);
+    setPosition(1, initServo2, false);
 
-    //get level2angle conversion
-    double level2angle;
-    level2angle = (double)(servo_levelMax[servoNum] - servo_levelMin[servoNum])/(servo_angleMax[servoNum]-servo_angleMin[servoNum]);
-    int level;
-    level = (int)(level2angle * (angle - servo_angleMin[servoNum])) + servo_levelMin[servoNum];
-
-    // // printing level for debuging
-    std::string levelPrint = std::to_string(level);
-    printf(levelPrint.c_str());
-    printf("\n");
-
-    pwm_set_chan_level(slice, channel, level);
+    for(int i = 1; i <= numSteps; i++){
+        setPosition(0, initServo1 + i * servo1Step, false);
+        setPosition(1, initServo2 + i * servo2Step, false);
+        sleep_us(timeStep);
+    }
 
 }
 
-int main() {
 
-    
-    initServo(0);
-    initServo(1);
-
-    stdio_init_all();
-
-    float angleRead = 0.0;
-    int servoNumber = 0;
-
-    while (1) {
-
-        // printf("Enter a servo number: \n");
-        // scanf("%d", &servoNumber);
-        printf("Enter an number angle: \n");
-        scanf("%f", &angleRead);
-
-        setPosition(0, angleRead);
-        setPosition(1, angleRead);
-        sleep_ms(500);
-
-     }
-
-}
