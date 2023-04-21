@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.12)
 
 # Include build functions from Pico SDK
-include($ENV{PICO_SDK_PATH}/external/pico_sdk_import.cmake)
+include(/Users/Sam/Code/pico/pico-sdk/external/pico_sdk_import.cmake)
 
 # Set name of project (as PROJECT_NAME) and C/C   standards
 project(tiltTable C CXX ASM)
@@ -12,10 +12,14 @@ set(CMAKE_CXX_STANDARD 17)
 # Creates a pico-sdk subdirectory in our project for the libraries
 pico_sdk_init()
 
+#getting Eigen library
+find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+
 # Tell CMake where to find the executable source file
 add_executable(${PROJECT_NAME} 
     main.cpp
     servos.cpp
+    circle.cpp
 )
 
 include_directories(tiltTable PUBLIC
@@ -29,6 +33,7 @@ pico_add_extra_outputs(${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME} 
     pico_stdlib
     hardware_pwm
+    Eigen3::Eigen
 )
 
 # Enable usb output, disable uart output
