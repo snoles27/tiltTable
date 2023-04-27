@@ -27,7 +27,6 @@ function circleDot(point::Vector{Float64}, center::Vector{Float64}, r::Float64)
     for i = 1:length(point)
         m = hcat(m, 2 * (point[i] - center[i]))
     end
-
     return m
 
 end
@@ -127,15 +126,19 @@ function findCircleIntersect(center1::Vector{Float64}, center2::Vector{Float64},
 
 end
 
-# let 
+let 
 
-#     ##testing circleIntersection
-#     center1 = [0., 0.]
-#     center2 = [2., 5.]
-#     r1 = 2.0
-#     r2 = 4.0
-#     testPoint = [-10.0, 10.0]
+    ##testing circleIntersection
+    center1 = [0., 0.]
+    center2 = [2., 2.]
+    r1 = 1.0
+    r2 = 2.0
+    testPoint = [2.0, 0.0]
+    f(x) = circleCross(x, center1, center2, r1, r2)
+    fdot(x) = circleCrossDot(x, center1, center2, r1, r2)
 
-#     findCircleIntersect(center1, center2, r1, r2, testPoint)
+    ans = newtonraphson(f, fdot, testPoint)
 
-# end
+    #findCircleIntersect(center1, center2, r1, r2, testPoint)
+
+ end

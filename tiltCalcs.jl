@@ -436,7 +436,7 @@ let
 
     ElAz0 = [pi/4, -pi/4]
     answer = findServoAngles(ElAz0, plottingOn = true, convergeTol = .01)
-    #colorPlot(ElAz0, scale = 0.1)
+    # colorPlot(ElAz0, scale = 0.1)
     
     # #testing box splitter function 
     # box1 = [[2.0, 0.0], [2.0, 1.0], [0.0, 1.0], [0.0, 0.]]
