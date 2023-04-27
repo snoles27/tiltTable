@@ -25,8 +25,7 @@ double* circleIntersect(double *center1, double *center2, double r1, double r2, 
         }
 
         double* tempPtr = nrstep(xn, center1, center2, r1, r2); //get updated value
-        xn1[0] = tempPtr[0]; //copy value over to xn1
-        xn1[1] = tempPtr[1];
+        std::copy(tempPtr, tempPtr + 2, xn1);
 
         resid = normdiff(xn1, xn); 
 
