@@ -15,6 +15,7 @@ double* getElAz(double* normal);
 double* thetas2ElAz(double* angles);
 double* thetas2DelElAz(double* angles, double* ElAz0);
 double windingSegment_s0(double x0, double xf, double y, double* ElAz0);
+double windingSegment_s1(double y0, double yf, double x, double* ElAz0);
 double rem2pi(double angle);
 
 #endif

@@ -155,6 +155,48 @@ double windingSegment_s0(double x0, double xf, double y, double* ElAz0){
     }
 
     return winding;
-
 }
+
+ double windingSegment_s1(double y0, double yf, double x, double* ElAz0){
+    //x0: initial servo 0 angle
+    //xf: final servo 0 anlge
+    //y: constant servo 1 angle
+    //returns winding number along segment where only s0 changes
+
+    //parameters
+    int numStep = 25;
+
+    double* outhold;
+    double angles[2];
+    double an;
+    double an1;
+    double step;
+    step = (yf - y0)/numStep;
+
+    angles[0] = x;
+    angles[1] = y0;
+    outhold = thetas2DelElAz(angles, ElAz0); //get ElAz (output space) of inital position 
+    an = atan2(outhold[1], outhold[0]);
+    // printf("a0 ");
+    // display(an);
+
+    double winding = 0;
+    
+    for(int i = 1; i <= 25; i++){
+        angles[1] = y0 + step * i; //update angle
+        // printf("angle: ");
+        // display(angles[0]);
+        outhold = thetas2DelElAz(angles, ElAz0); //update output point
+        an1 = atan2(outhold[1], outhold[0]);
+        // printf("an1: ");
+        // display(an1);
+        winding += rem2pi(an1 - an);
+        // printf("winding: ");
+        // display(winding);
+        an = an1;
+    }
+
+    return winding;
+
+ }
 

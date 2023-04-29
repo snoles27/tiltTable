@@ -437,7 +437,7 @@ let
     ElAzWant = [-1.0,3.1];
     func(angles) = thetas2DelElAz(angles, ElAzWant)
     
-    winding = windingSegment([-1.0,0.0], [1.5,0.0], func);
+    winding = windingSegment([0.0,-1.0], [0.0,1.5], func);
 
     #ElAz0 = [pi/4, -pi/4]
     #answer = findServoAngles(ElAz0, plottingOn = true, convergeTol = .01)
