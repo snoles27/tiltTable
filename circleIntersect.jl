@@ -126,25 +126,25 @@ function findCircleIntersect(center1::Vector{Float64}, center2::Vector{Float64},
 
 end
 
-let 
+# let 
 
-    ##testing circleIntersection
-    center1 = [0., 0.]
-    center2 = [1.33, -1.88]
-    r1 = 1.3
-    r2 = 2.75
-    testPoint = [1.30, 0.0]
-    f(x) = circleCross(x, center2, center1, r2, r1)
-    fdot(x) = circleCrossDot(x, center2, center1, r2, r1)
+#     ##testing circleIntersection
+#     center1 = [0., 0.]
+#     center2 = [1.33, -1.88]
+#     r1 = 1.3
+#     r2 = 2.75
+#     testPoint = [1.30, 0.0]
+#     f(x) = circleCross(x, center2, center1, r2, r1)
+#     fdot(x) = circleCrossDot(x, center2, center1, r2, r1)
 
-    display(nrStep(testPoint, f, fdot));
-    display(f(testPoint))
-    display(fdot(testPoint))
-    display(newtonraphson(f, fdot, testPoint))
+#     display(nrStep(testPoint, f, fdot));
+#     display(f(testPoint))
+#     display(fdot(testPoint))
+#     display(newtonraphson(f, fdot, testPoint))
 
 
-    # ans = newtonraphson(f, fdot, testPoint)
+#     # ans = newtonraphson(f, fdot, testPoint)
 
-    #findCircleIntersect(center1, center2, r1, r2, testPoint)
+#     #findCircleIntersect(center1, center2, r1, r2, testPoint)
 
- end
+#  end

@@ -161,6 +161,14 @@ double norm(double v[]){
     return sqrt(pow(v[0],2) + pow(v[1],2));
 }
 
+double norm(double v[], int n){
+    double sum = 0;
+    for(int i = 0; i < n; i++){
+        sum += pow(v[i],2);
+    }
+    return sqrt(sum);
+}
+
 double normdiff(double v1[], double v2[]){
     //finds distance between two points in R2 defined by v1 and v2
     double diff[2];

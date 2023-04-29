@@ -7,7 +7,7 @@ include("circleIntersect.jl")
 
 
 ######DESIGN PARAMETERS########
-rServ = 0.9  #radius of the servo arm (inches)
+rServ = 0.97  #radius of the servo arm (inches)
 rodLoc = 1.3 #location of rod attachement to plate, distance to center (inches)
 lRod = 2.75 #length of actuation rod, servo attachment --> ball center (inches) 
 servoRange = [-pi/2, pi/2] #angle range of servo (radians)
@@ -434,8 +434,11 @@ end
 
 let 
 
-    ElAz0 = [pi/4, -pi/4]
-    answer = findServoAngles(ElAz0, plottingOn = true, convergeTol = .01)
+    #display(findPlanePoint(1.0))
+    display(thetas2ElAz([.5,-.5]))
+
+    #ElAz0 = [pi/4, -pi/4]
+    #answer = findServoAngles(ElAz0, plottingOn = true, convergeTol = .01)
     # colorPlot(ElAz0, scale = 0.1)
     
     # #testing box splitter function 

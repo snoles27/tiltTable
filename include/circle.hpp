@@ -7,6 +7,7 @@
 double* circleIntersect(double *center1, double *center2, double r1, double r2, double *x0, double tol);
 double* circleIntersect(double *center1, double *center2, double r1, double r2, double *x0);
 double norm(double v[]);
+double norm(double v[], int n);
 double normdiff(double v1[], double v2[]);
 double circle(double point[], double center[], double r);
 double* circleDot(double point[], double center[]);

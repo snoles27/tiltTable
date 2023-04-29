@@ -10,5 +10,8 @@
 
 double* rodEndLoc(double theta);
 double* findPlanePoint(double theta);
+double* getTableNormal(double theta0, double theta1);
+double* getElAz(double* normal);
+double* thetas2ElAz(double* angles);
 
 #endif

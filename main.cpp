@@ -8,16 +8,25 @@
 #include "helper.hpp"
 #include "tiltCalcs.hpp"
 
-
-#define PI 3.1415926
-
 int main() {
     
     stdio_init_all();
     sleep_ms(3000);
     printf("begin\n");
-    display(findPlanePoint(1.0), 2);
-    display(findPlanePoint(1.0), 2);
+
+    // //testing thetas2ElAz and timing it
+    // double angles[2] {0.5, -0.5};
+    // auto start = std::chrono::high_resolution_clock::now();
+    // double* result;
+    // for(int i = 0; i < 100; i++)
+    // {
+    //     result = thetas2ElAz(angles);
+    // }
+    // display(result,2);
+    // auto stop = std::chrono::high_resolution_clock::now();
+    // auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    // display((double)duration.count());
+
 
     // double* ptr;
     // double zeros[2] {0.0, 0.0};
@@ -127,8 +136,8 @@ int main() {
     //     sleep_ms(6000);
     //     std::string dis = "hold";
     //     for(int i = 0; i < numStep; i++){
-    //         pos1 = amplitude * std::cos(2. * PI * i * timeStep * freq);
-    //         pos2 = amplitude * std::sin(2. * PI * i * timeStep * freq);
+    //         pos1 = amplitude * std::cos(2. * M_PI * i * timeStep * freq);
+    //         pos2 = amplitude * std::sin(2. * M_PI * i * timeStep * freq);
     //         setPosition(0, pos1, false);
     //         setPosition(1, pos2, false);
     //         // dis = std::to_string(pos1);
