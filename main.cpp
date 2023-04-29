@@ -1,47 +1,36 @@
 #include <stdio.h>
-#include "pico/stdlib.h"
 #include "hardware/pwm.h"
-#include <string>
 #include <cmath>
+#include <chrono>
 
 #include "servos.h"
 #include "circle.hpp"
+#include "helper.hpp"
+#include "tiltCalcs.hpp"
+
 
 #define PI 3.1415926
-
-//methods for testing displaying things
-void display(double num){
-    std::string dis;
-    dis = std::to_string(num);
-    printf(dis.c_str());
-    printf("\n");  
-}
-
-void display(int num){
-    std::string dis;
-    dis = std::to_string(num);
-    printf(dis.c_str());
-    printf("\n");  
-}
-
-void display(std::string dis){
-    printf(dis.c_str());
-    printf("\n");  
-}
-
-void display(double num[], int n){
-    for(int i = 0; i < n; i++){
-        display(num[i]);
-    }
-}
 
 int main() {
     
     stdio_init_all();
     sleep_ms(3000);
     printf("begin\n");
+    display(findPlanePoint(1.0), 2);
+    display(findPlanePoint(1.0), 2);
 
-    
+    // double* ptr;
+    // double zeros[2] {0.0, 0.0};
+    // double init[2] {RODLOC, 0.0};
+    // double rodEndTest[2] {1.33, -1.88};
+
+    // // ptr = nrstep(init, rodEndTest, zeros, 2.0, 1.0);
+
+
+    // ptr = circleIntersect(rodEndTest, zeros, LROD, RODLOC, init);
+    // display(ptr, 2);
+
+
     //testing solve
     // double A[4] {1., 2., 0.,1.};
     // double b[2] {3., 1.};
@@ -50,14 +39,21 @@ int main() {
     // display(x[1]);
     
     //test nrstep 
-    double center1[2] {0.0, 0.0};
-    double r1 = 1.0;
-    double center2[2] {2.0,2.0};
-    double r2 = 2.0;
-    double point[2] {2.0, 0.0};
+    // double center1[2] {0.0, 0.0};
+    // double r1 = 1.0;
+    // double center2[2] {2.0,2.0};
+    // double r2 = 2.0;
+    // double point[2] {2.0, 0.0};
 
-    double* intersect = circleIntersect(center1, center2, r1, r2, point, .00000001);
-    display(intersect, 2);
+    // double* intersect;
+    // auto start = std::chrono::high_resolution_clock::now();
+    // for(int i = 0; i < 100; i++){
+    //     intersect = circleIntersect(center1, center2, r1, r2, point, .00000001); //cicleIntersect() 400us compute time seems to be the testnig value
+    // }
+    // auto stop = std::chrono::high_resolution_clock::now();
+    // display(intersect, 2);
+    // auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+    // display((double)duration.count());
 
     // double* checkans = nrstep(point, center1, center2, r1, r2);
     // display(checkans, 2);

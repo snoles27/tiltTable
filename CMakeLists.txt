@@ -20,6 +20,8 @@ add_executable(${PROJECT_NAME}
     main.cpp
     servos.cpp
     circle.cpp
+    tiltCalcs.cpp
+    helper.cpp
 )
 
 include_directories(tiltTable PUBLIC

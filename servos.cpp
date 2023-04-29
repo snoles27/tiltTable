@@ -5,8 +5,8 @@
 #include <string>
 
 //defining useful numbers
-#define PI 3.1415926
-#define PIHALF 1.570796
+#define PI 3.14159265358979323846
+#define PIHALF 1.57079632679489661923
 
 //pwm clock settings for both servos
 const uint16_t wrap = 18750;
