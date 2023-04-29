@@ -434,8 +434,10 @@ end
 
 let 
 
-    #display(findPlanePoint(1.0))
-    display(thetas2ElAz([.5,-.5]))
+    ElAzWant = [-1.0,3.1];
+    func(angles) = thetas2DelElAz(angles, ElAzWant)
+    
+    winding = windingSegment([-1.0,0.0], [1.5,0.0], func);
 
     #ElAz0 = [pi/4, -pi/4]
     #answer = findServoAngles(ElAz0, plottingOn = true, convergeTol = .01)
