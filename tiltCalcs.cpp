@@ -238,12 +238,14 @@ double* twoDBisectionStep(double* box, double* ElAz0){
 }
 
 double* twoDBisection(double* initBox, double* ElAz0){
+    //initBox: box array to start the iteration --> solution must be in this box
+    //ElAz0: desired Elevation and azimuth
 
-    double convergedArea = 0.0001;
+    double convergedArea = 0.0001; //area to compare box area too. once less it will return center of box
 
-    static double ans[2];
-    double box[4];
-    double* hold;
+    static double ans[2]; //ans to return
+    double box[4]; //holds box
+    double* hold; //pointer holder to copy to box
 
     std::copy(initBox, initBox + 4, box); //copy initial box to the box
     // printf("Init Box: \n");
@@ -264,6 +266,8 @@ double* twoDBisection(double* initBox, double* ElAz0){
 }
 
 double boxArea(double* box){
+    //box: box like all the rest
+    //returns: area of box. relies on size returning positive values
     double* size;
     size = boxSize(box);
     double area;
@@ -274,6 +278,10 @@ double boxArea(double* box){
 }
 
 double* boxSize(double* box){
+    //box: array of length 4 encoding box
+    //returns: array containing side length of box
+    //assumes box[1] > box[0] and box[3] > box[2]
+
     static double size[2];
     size[0] = box[1] - box[0];
     size[1] = box[3] - box[2];
@@ -281,7 +289,8 @@ double* boxSize(double* box){
 }
 
 double* splitLong(double* box){
-
+    //box: array of length 4 encoding box
+    //returns newBoxes: array of length 8 containing 2 boxes back to back 
     static double newBoxes[8];
     double* size = boxSize(box);
     
@@ -312,7 +321,7 @@ double* splitLong(double* box){
 }
 
 double* getInitBox(double Az){
-
+    //returns inital box based on the desired azimuth
     static double box[4];
     if (Az < M_PI_4 && Az >= -1 * M_PI_4){
         box[0] = -1 * SERVOMAX;
@@ -342,6 +351,9 @@ double* getInitBox(double Az){
 
 double* getServoAngles(double* ElAz){
 
+    //ElAz: array of two elements that has desired elevation and Azimuth
+    //returns: servo angles to s0, s1 to give desired elevation/azimuth
+
     static double result[2];
     double* initBox;
     initBox = getInitBox(ElAz[1]);
@@ -349,7 +361,7 @@ double* getServoAngles(double* ElAz){
     double* servoAngles;
     servoAngles = twoDBisection(initBox, ElAz);
     std::copy(servoAngles, servoAngles + 2, result);
-    
+
     return result;
 }
 
