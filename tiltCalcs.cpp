@@ -2,7 +2,8 @@
 #include "helper.hpp"
 #include "tiltCalcs.hpp"
 
-
+#define SERVOMAX M_PI_2
+#define BOXZERO 0.0
 
 double* rodEndLoc(double theta){
     //theta:: angle over servo arm. 0 corresponds to horozontal
@@ -114,7 +115,6 @@ double* thetas2DelElAz(double* angles, double* ElAz0){
     return del;
 }
 
-
 double windingSegment_s0(double x0, double xf, double y, double* ElAz0){
     //x0: initial servo 0 angle
     //xf: final servo 0 anlge
@@ -157,7 +157,7 @@ double windingSegment_s0(double x0, double xf, double y, double* ElAz0){
     return winding;
 }
 
- double windingSegment_s1(double y0, double yf, double x, double* ElAz0){
+double windingSegment_s1(double y0, double yf, double x, double* ElAz0){
     //x0: initial servo 0 angle
     //xf: final servo 0 anlge
     //y: constant servo 1 angle
@@ -199,4 +199,157 @@ double windingSegment_s0(double x0, double xf, double y, double* ElAz0){
     return winding;
 
  }
+
+double windingBox(double* box, double* ElAz0){
+    //box: (x0, x1, y0, y1) array storing location of box sides
+
+    double winding = 0;
+    winding += windingSegment_s0(box[0], box[1], box[2], ElAz0);
+    winding += windingSegment_s1(box[2], box[3], box[1], ElAz0);
+    winding += windingSegment_s0(box[1], box[0], box[3], ElAz0);
+    winding += windingSegment_s1(box[3], box[2], box[0], ElAz0);
+
+    return winding;
+
+}
+
+double* twoDBisectionStep(double* box, double* ElAz0){
+    //box: 4 element array representing box
+    //returns box of half the area with the zero still in it
+
+    static double returnbox[4];
+    double thresh = 0.000001;
+    double* twoBox;
+    twoBox = splitLong(box);
+
+    double winding1;
+    double winding2;
+    winding1 = windingBox(twoBox, ElAz0);
+    winding2 = windingBox(&twoBox[4], ElAz0);
+
+    if(rem2pi(winding1)<thresh && abs(winding1) > thresh){
+        std::copy(twoBox, twoBox + 4, returnbox);
+    }else if (rem2pi(winding2)<thresh && abs(winding2) > thresh){
+        std::copy(&twoBox[4], &twoBox[4] + 4, returnbox);
+    }else{
+        printf("Fail at twoDBisectionstep\n");
+    }
+    return returnbox;
+}
+
+double* twoDBisection(double* initBox, double* ElAz0){
+
+    double convergedArea = 0.0001;
+
+    static double ans[2];
+    double box[4];
+    double* hold;
+
+    std::copy(initBox, initBox + 4, box); //copy initial box to the box
+    // printf("Init Box: \n");
+    // display(box,4);
+    while(boxArea(box) > convergedArea){
+        hold = twoDBisectionStep(box, ElAz0);
+        std::copy(hold, hold + 4, box); //copy result over to box
+        // printf("Box: \n");
+        // display(box,4);
+    }
+
+    //get center of box
+    ans[0] = (box[0] + box[1])/2;
+    ans[1] = (box[2] + box[3])/2;
+
+    return ans;
+
+}
+
+double boxArea(double* box){
+    double* size;
+    size = boxSize(box);
+    double area;
+    area =  size[0] * size[1];
+    printf("Area: ");
+    display(area);
+    return area;
+}
+
+double* boxSize(double* box){
+    static double size[2];
+    size[0] = box[1] - box[0];
+    size[1] = box[3] - box[2];
+    return size;
+}
+
+double* splitLong(double* box){
+
+    static double newBoxes[8];
+    double* size = boxSize(box);
+    
+    if(size[0] > size[1]){ //split horozontally. //left box is first
+        double newX = (box[0] + box[1])/2; //middle of two xpositions
+        newBoxes[0] = box[0];
+        newBoxes[1] = newX;
+        newBoxes[2] = box[2];
+        newBoxes[3] = box[3];
+        newBoxes[4] = newX;
+        newBoxes[5] = box[1];
+        newBoxes[6] = box[2];
+        newBoxes[7] = box[3];
+    }
+    else{
+        double newY = (box[2] + box[3])/2;
+        newBoxes[0] = box[0];
+        newBoxes[1] = box[1];
+        newBoxes[2] = box[2];
+        newBoxes[3] = newY;
+        newBoxes[4] = box[0];
+        newBoxes[5] = box[1];
+        newBoxes[6] = newY;
+        newBoxes[7] = box[3];
+    }
+
+    return newBoxes;
+}
+
+double* getInitBox(double Az){
+
+    static double box[4];
+    if (Az < M_PI_4 && Az >= -1 * M_PI_4){
+        box[0] = -1 * SERVOMAX;
+        box[1] = BOXZERO;
+        box[2] = -1 * SERVOMAX;
+        box[3] = SERVOMAX;
+    }else if(Az < 3 * M_PI_4 && Az >= M_PI_4){
+        box[0] = -1 * SERVOMAX;
+        box[1] = SERVOMAX;
+        box[2] = -1 * SERVOMAX;
+        box[3] = BOXZERO;
+    }else if(Az < -1 * M_PI_4 && Az >= -3 * M_PI_4){
+        box[0] = -1 * SERVOMAX;
+        box[1] = SERVOMAX;
+        box[2] = BOXZERO;
+        box[3] = SERVOMAX;
+    }else{
+        box[0] = BOXZERO;
+        box[1] = SERVOMAX;
+        box[2] = -1 * SERVOMAX;
+        box[3] = SERVOMAX;
+    }
+
+    return box;
+
+}
+
+double* getServoAngles(double* ElAz){
+
+    static double result[2];
+    double* initBox;
+    initBox = getInitBox(ElAz[1]);
+
+    double* servoAngles;
+    servoAngles = twoDBisection(initBox, ElAz);
+    std::copy(servoAngles, servoAngles + 2, result);
+    
+    return result;
+}
 

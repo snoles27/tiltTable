@@ -10,12 +10,12 @@ void display(double num){
     printf("\n");  
 }
 
-void display(int num){
-    std::string dis;
-    dis = std::to_string(num);
-    printf(dis.c_str());
-    printf("\n");  
-}
+// void display(int num){
+//     std::string dis;
+//     dis = std::to_string(num);
+//     printf(dis.c_str());
+//     printf("\n");  
+// }
 
 void display(std::string dis){
     printf(dis.c_str());

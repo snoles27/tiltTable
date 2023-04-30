@@ -273,9 +273,10 @@ function twoDBisection(initBox::Vector{Vector{Float64}}, func::Function; converg
         end
         if plottingOn #if plotting on, plot each box
             plotBox(box)
+            sleep(.2) #included if wanting to screen record the convergence
         end
-        sleep(.2) #included if wanting to screen record the convergence
     end
+        
 
     return boxCenter(box)    
 end
@@ -434,10 +435,12 @@ end
 
 let 
 
-    ElAzWant = [-1.0,3.1];
-    func(angles) = thetas2DelElAz(angles, ElAzWant)
-    
-    winding = windingSegment([0.0,-1.0], [0.0,1.5], func);
+    ElAzWant = [1.2, 1.6];
+
+    findServoAngles(ElAzWant, plottingOn = true)
+
+
+    #winding = windingBox(box, func)
 
     #ElAz0 = [pi/4, -pi/4]
     #answer = findServoAngles(ElAz0, plottingOn = true, convergeTol = .01)

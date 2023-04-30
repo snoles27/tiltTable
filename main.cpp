@@ -14,9 +14,27 @@ int main() {
     sleep_ms(3000);
     printf("begin\n");
 
+    //double box[4] {-.5, 0.25, .25, 1.0};
+    //display(boxSize(box),2);
+    //display(boxArea(box));
 
-    double ElAzWant[2] {-1.0, 3.1};
-    display(windingSegment_s1(-1.0, 1.5, 0.0, ElAzWant));
+    while(1){
+
+    
+        double ElAzWant[2];
+        printf("Enter El then Az: \n");
+        scanf("%lf", &ElAzWant[0]);
+        scanf("%lf", &ElAzWant[1]);
+        display(getServoAngles(ElAzWant),2);
+        printf("complete!\n");
+        sleep_ms(100);
+    }
+    // 
+    // double box[4] {-1.5, 0, -1.0, 1.0};
+    // display(windingBox(box, ElAzWant));
+
+
+
 
     // //testing thetas2ElAz and timing it
     // double angles[2] {0.5, -0.5};
