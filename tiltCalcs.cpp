@@ -97,6 +97,7 @@ double* thetas2ElAz(double* angles){
 }
 
 double rem2pi(double angle){
+    //attempt to copy Julia rem2pi function
     return angle - 2.0 * M_PI * round(angle/(2.0 * M_PI));
 }
 

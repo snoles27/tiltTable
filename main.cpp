@@ -8,25 +8,48 @@
 #include "helper.hpp"
 #include "tiltCalcs.hpp"
 
+void move(double* ElAz){
+    //ElAz: elevation azimuth to move table normal
+
+    double angleThresh = 1.2; //threshold for too much combied servo rotation for the ball joints. not a great metric
+
+    double* servoAngles; 
+    printf("Solving...");
+    servoAngles = getServoAngles(ElAz); //solve for servo angles;
+    printf("complete.\n");
+
+    //check if angles are too large
+    if(norm(servoAngles,2) > angleThresh){
+        printf("Too Large!\n");
+        servoAngles[0] = 0.0;
+        servoAngles[1] = 0.0;
+    }
+
+    display(norm(servoAngles));
+
+    //set positions
+    setPosition(0, servoAngles[0], false);
+    setPosition(1, servoAngles[1], false);
+}
+
 int main() {
+
+    //initialize servo/pwm
+    initServo(0);
+    initServo(1);
     
-    stdio_init_all();
-    sleep_ms(3000);
+    stdio_init_all(); //start serial coms
+    sleep_ms(3000); //pause before starting serial stuff
     printf("begin\n");
 
-    //double box[4] {-.5, 0.25, .25, 1.0};
-    //display(boxSize(box),2);
-    //display(boxArea(box));
-
     while(1){
-
-    
         double ElAzWant[2];
-        printf("Enter El then Az: \n");
+        double* servoAngles;
+        printf("Enter El...\n");
         scanf("%lf", &ElAzWant[0]);
+        printf("Enter Az...\n");
         scanf("%lf", &ElAzWant[1]);
-        display(getServoAngles(ElAzWant),2);
-        printf("complete!\n");
+        move(ElAzWant);
         sleep_ms(100);
     }
     // 
