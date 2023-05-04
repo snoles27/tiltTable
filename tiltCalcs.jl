@@ -435,7 +435,7 @@ end
 
 let 
 
-    ElAzWant = [1.2, 1.6];
+    ElAzWant = [1.2, 2.1];
 
     findServoAngles(ElAzWant, plottingOn = true)
 

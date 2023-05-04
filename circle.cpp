@@ -45,7 +45,7 @@ double* circleIntersect(double *center1, double *center2, double r1, double r2, 
 }
 
 double* circleIntersect(double *center1, double *center2, double r1, double r2, double *x0){
-    double tol = 0.000001;
+    double tol = 0.00001;
     return circleIntersect(center1, center2, r1, r2, x0, tol);
 }
 

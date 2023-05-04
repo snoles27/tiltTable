@@ -8,10 +8,40 @@
 #include "helper.hpp"
 #include "tiltCalcs.hpp"
 
+void demoMove(){
+
+    float amplitude = 0.8;
+    float freq = 0.5;
+    float timeStep = 0.02; //servo motor timestep (s)
+    int numRotations = 5;
+    int numStep = (int)((1/timeStep)/freq * numRotations);
+
+    float pos1 = 0.0;
+    float pos2 = 0.0;
+    float initPos1 = 0.0;
+    float initPos2 = 0.0;
+    float time = 0.0;
+
+    while (1) {
+
+        // //moving in circle
+        setPosition(0, amplitude, false);
+        setPosition(1, 0., false);
+        sleep_ms(6000);
+        for(int i = 0; i < numStep; i++){
+            pos1 = amplitude * std::cos(2. * M_PI * i * timeStep * freq);
+            pos2 = amplitude * std::sin(2. * M_PI * i * timeStep * freq);
+            setPosition(0, pos1, false);
+            setPosition(1, pos2, false);
+            sleep_ms((int)(timeStep * 1000));
+        }
+    }
+
+}
 void move(double* ElAz){
     //ElAz: elevation azimuth to move table normal
 
-    double angleThresh = 1.2; //threshold for too much combied servo rotation for the ball joints. not a great metric
+    double angleThresh = 1.3; //threshold for too much combied servo rotation for the ball joints. not a great metric
 
     double* servoAngles; 
     printf("Solving...");
@@ -20,7 +50,8 @@ void move(double* ElAz){
 
     //check if angles are too large
     if(norm(servoAngles,2) > angleThresh){
-        printf("Too Large!\n");
+        printf("Too Large!");
+        display(norm(servoAngles,2));
         servoAngles[0] = 0.0;
         servoAngles[1] = 0.0;
     }
@@ -42,20 +73,22 @@ int main() {
     sleep_ms(3000); //pause before starting serial stuff
     printf("begin\n");
 
+    
+    //MAIN READ AND MOVE CODE
     while(1){
         double ElAzWant[2];
         double* servoAngles;
-        printf("Enter El...\n");
+        printf("Enter Elevation (radians)\n");
         scanf("%lf", &ElAzWant[0]);
-        printf("Enter Az...\n");
+        printf("Enter Azimuth (radians)...\n");
         scanf("%lf", &ElAzWant[1]);
         move(ElAzWant);
         sleep_ms(100);
     }
-    // 
-    // double box[4] {-1.5, 0, -1.0, 1.0};
-    // display(windingBox(box, ElAzWant));
+    
 
+
+    //dancing code 
 
 
 
