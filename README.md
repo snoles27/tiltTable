@@ -5,7 +5,7 @@ Project is making a platform that can orient itself at any angle. Use cases incl
 
 Julia code is for testing algorithm to go from disired table orinetation given in elevation and azimuth to the two servo angles. Implimented 2D bisection algorthim using winding numbers to solve. 
 
-Final implimnetation is in C++ for RP2040. 
+Final implimentation is in C++ for RP2040. 
 
     circle.cpp - Newton-Raphson iteration for finding insersection of two circles
     
